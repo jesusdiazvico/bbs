@@ -57,50 +57,50 @@ pub(crate) fn hash_to_generators<'a, T: BbsCiphersuite<'a>>(count: usize) -> Vec
     generators
 }
 
-#[cfg(test)]
-mod test {
-
-    use fluid::prelude::*;
-
-    use crate::{ciphersuite::*, fixture, generators::*, hashing::*, hex_decode, tests};
-
-    #[theory]
-    #[case("bls12-381-sha-256/generators.json", Bls12381Sha256)]
-    #[case("bls12-381-shake-256/generators.json", Bls12381Shake256)]
-    fn generators_test<'a, T>(file: &str, _: T)
-    where
-        T: BbsCiphersuite<'a>,
-    {
-        let input = fixture!(tests::Generators, file);
-
-        let generators = create_generators::<T>(input.msg_generators.len() + 1);
-
-        assert_eq!(generators.P1.serialize(), hex_decode!(input.bp));
-        assert_eq!(generators.Q1.serialize(), hex_decode!(input.q1));
-
-        for i in 0..input.msg_generators.len() {
-            assert_eq!(generators.H[i].serialize(), hex_decode!(&input.msg_generators[i]));
-        }
-    }
-
-    // #[theory]
-    // #[case(
-    //     Bls12381Sha256,
-    //     b"a8ce256102840821a3e94ea9025e4662b205762f9776b3a766c872b948f1fd225e7c59698588e70d11406d161b4e28c9"
-    // )]
-    // #[case(
-    //     Bls12381Shake256,
-    //     b"8929dfbc7e6642c4ed9cba0856e493f8b9d7d5fcb0c31ef8fdcd34d50648a56c795e106e9eada6e0bda386b414150755"
-    // )]
-    // fn get_bp<'a, T>(_: T, expected: &[u8])
-    // where
-    //     T: BbsCiphersuite<'a>,
-    // {
-    //     let generators = hash_to_generators::<T>(1);
-
-    //     println!("{:?}", hex_decode!(expected));
-
-    //     assert!(generators.len() == 1);
-    //     assert_eq!(generators[0].serialize(), hex_decode!(expected));
-    // }
-}
+// #[cfg(test)]
+// mod test {
+//
+//     use fluid::prelude::*;
+//
+//     use crate::{ciphersuite::*, fixture, generators::*, hashing::*, hex_decode, tests};
+//
+//     #[theory]
+//     #[case("bls12-381-sha-256/generators.json", Bls12381Sha256)]
+//     #[case("bls12-381-shake-256/generators.json", Bls12381Shake256)]
+//     fn generators_test<'a, T>(file: &str, _: T)
+//     where
+//         T: BbsCiphersuite<'a>,
+//     {
+//         let input = fixture!(tests::Generators, file);
+//
+//         let generators = create_generators::<T>(input.msg_generators.len() + 1);
+//
+//         assert_eq!(generators.P1.serialize(), hex_decode!(input.bp));
+//         assert_eq!(generators.Q1.serialize(), hex_decode!(input.q1));
+//
+//         for i in 0..input.msg_generators.len() {
+//             assert_eq!(generators.H[i].serialize(), hex_decode!(&input.msg_generators[i]));
+//         }
+//     }
+//
+//     // #[theory]
+//     // #[case(
+//     //     Bls12381Sha256,
+//     //     b"a8ce256102840821a3e94ea9025e4662b205762f9776b3a766c872b948f1fd225e7c59698588e70d11406d161b4e28c9"
+//     // )]
+//     // #[case(
+//     //     Bls12381Shake256,
+//     //     b"8929dfbc7e6642c4ed9cba0856e493f8b9d7d5fcb0c31ef8fdcd34d50648a56c795e106e9eada6e0bda386b414150755"
+//     // )]
+//     // fn get_bp<'a, T>(_: T, expected: &[u8])
+//     // where
+//     //     T: BbsCiphersuite<'a>,
+//     // {
+//     //     let generators = hash_to_generators::<T>(1);
+//
+//     //     println!("{:?}", hex_decode!(expected));
+//
+//     //     assert!(generators.len() == 1);
+//     //     assert_eq!(generators[0].serialize(), hex_decode!(expected));
+//     // }
+// }

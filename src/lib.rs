@@ -5,14 +5,20 @@ use std::array::TryFromSliceError;
 
 use encoding::Message;
 use itertools::Itertools;
-use prelude::*;
+use prelude::{
+    encoding::{Ciphertext, EGPublikKey},
+    proof_with_encryption::ProofWithEncrypted,
+    *,
+};
 
 mod ciphersuite;
+mod elgamal;
 mod encoding;
 mod generators;
 mod hashing;
 mod key;
 mod proof;
+mod proof_with_encryption;
 mod signature;
 mod utils;
 #[macro_use]
@@ -21,8 +27,10 @@ mod tests;
 
 pub mod prelude {
     pub use crate::ciphersuite::*;
+    pub use crate::elgamal::*;
     pub use crate::key::*;
     pub use crate::proof::*;
+    pub use crate::proof_with_encryption::*;
     pub use crate::signature::*;
     pub use crate::*;
 }
@@ -164,6 +172,37 @@ where
         self.create_proof_with(pk, signature, messages, revealed, &[])
     }
 
+    /// Create a proof of knowledge of a signature with encrypted attributes
+    ///
+    /// _Computes a zero-knowledge proof-of-knowledge of a signature,
+    /// while optionally selectively disclosing from the original set of signed messages._
+    ///
+    /// Specification [3.4.3. ProofGen](https://identity.foundation/bbs-signature/draft-irtf-cfrg-bbs-signatures.html#name-proofgen)
+    #[allow(clippy::too_many_arguments)]
+    pub fn create_proof_with_enc(
+        &self,
+        pk_bbs: &PublicKey,
+        pk_elgamal: &EGPublikKey,
+        signature: &Signature,
+        ciphertext: &[Ciphertext],
+        c_randomness: &[Message],
+        messages: &[Message],
+        disclosed_indices: &[usize],
+        encrypted_indices: &[usize],
+    ) -> Result<ProofWithEncrypted, Error> {
+        self.create_proof_with_enc_with(
+            pk_bbs,
+            pk_elgamal,
+            signature,
+            ciphertext,
+            c_randomness,
+            messages,
+            disclosed_indices,
+            encrypted_indices,
+            &[],
+        )
+    }
+
     /// Create a proof of signature knowledge
     ///
     ///
@@ -189,15 +228,80 @@ where
         ))
     }
 
+    /// Create a proof of signature knowledge with encryption support
+    ///
+    ///
+    #[allow(clippy::too_many_arguments)]
+    pub fn create_proof_with_enc_with(
+        &self,
+        pk_bbs: &PublicKey,
+        pk_elgamal: &EGPublikKey,
+        signature: &Signature,
+        ciphertext: &[Ciphertext],
+        c_randomness: &[Message],
+        messages: &[Message],
+        disclosed_indices: &[usize],
+        encrypted_indices: &[usize],
+        ph: &[u8],
+    ) -> Result<ProofWithEncrypted, Error> {
+        if disclosed_indices.len() > messages.len()
+            || disclosed_indices.iter().any(|x| *x >= messages.len())
+            || encrypted_indices.len() > messages.len()
+            || encrypted_indices.iter().any(|x| *x >= messages.len())
+            || encrypted_indices.iter().any(|x| disclosed_indices.contains(x))
+            || encrypted_indices.len() != ciphertext.len()
+            || c_randomness.len() != ciphertext.len()
+        {
+            return Err(Error::InvalidProof);
+        }
+        let ciphertext = ciphertext.iter().map(|x| (x.0, x.1)).collect::<Vec<_>>();
+        let pk_elgamal = &pk_elgamal.0;
+        let c_randomness = &c_randomness.iter().map(|x| x.0).collect::<Vec<_>>();
+        Ok(proof_with_encryption::proof_with_enc_gen_impl::<T>(
+            &pk_bbs.0,
+            pk_elgamal,
+            signature,
+            &ciphertext,
+            c_randomness,
+            self.header,
+            ph,
+            &messages.iter().map(|m| m.0).collect::<Vec<_>>(),
+            &disclosed_indices.iter().unique().copied().collect::<Vec<_>>(),
+            &encrypted_indices.iter().unique().copied().collect::<Vec<_>>(),
+        ))
+    }
+
     pub fn verify_proof(&self, pk: &PublicKey, proof: &Proof, messages: &[Message], revealed: &[usize]) -> Result<bool, Error> {
         self.verify_proof_with(pk, proof, messages, revealed, &[])
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    pub fn verify_proof_with_enc(
+        &self,
+        pk_bbs: &PublicKey,
+        pk_elgamal: &EGPublikKey,
+        ciphertext: &[Ciphertext],
+        proof: &ProofWithEncrypted,
+        disclosed_messages: &[Message],
+        disclosed_indices: &[usize],
+        encrypted_indices: &[usize],
+    ) -> Result<bool, Error> {
+        self.verify_proof_with_enc_with(
+            pk_bbs,
+            pk_elgamal,
+            ciphertext,
+            proof,
+            disclosed_messages,
+            disclosed_indices,
+            encrypted_indices,
+            &[],
+        )
     }
 
     pub fn verify_proof_with(&self, pk: &PublicKey, proof: &Proof, messages: &[Message], revealed: &[usize], ph: &[u8]) -> Result<bool, Error> {
         if revealed.len() != messages.len() {
             return Err(Error::InvalidProof);
         }
-
         Ok(proof::proof_verify_impl::<T>(
             &pk.0,
             proof,
@@ -205,6 +309,39 @@ where
             ph,
             &messages.iter().map(|m| m.0).collect::<Vec<_>>(),
             &revealed.iter().unique().copied().collect::<Vec<_>>(),
+        ))
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    pub fn verify_proof_with_enc_with(
+        &self,
+        pk_bbs: &PublicKey,
+        pk_elgamal: &EGPublikKey,
+        ciphertext: &[Ciphertext],
+        proof: &ProofWithEncrypted,
+        disclosed_messages: &[Message],
+        disclosed_indices: &[usize],
+        encrypted_indices: &[usize],
+        ph: &[u8],
+    ) -> Result<bool, Error> {
+        if disclosed_indices.len() != disclosed_messages.len()
+            || encrypted_indices.iter().any(|x| disclosed_indices.contains(x))
+            || encrypted_indices.len() != ciphertext.len()
+        {
+            return Err(Error::InvalidProof);
+        }
+        let pk_elgamal = &pk_elgamal.0;
+        let ciphertext = ciphertext.iter().map(|x| (x.0, x.1)).collect::<Vec<_>>();
+        Ok(proof_with_encryption::proof_with_enc_verify_impl::<T>(
+            &pk_bbs.0,
+            pk_elgamal,
+            &ciphertext,
+            proof,
+            self.header,
+            ph,
+            &disclosed_messages.iter().map(|m| m.0).collect::<Vec<_>>(),
+            &disclosed_indices.iter().unique().copied().collect::<Vec<_>>(),
+            &encrypted_indices.iter().unique().copied().collect::<Vec<_>>(),
         ))
     }
 }
@@ -224,6 +361,7 @@ impl From<TryFromSliceError> for Error {
     }
 }
 
+//TODO: add test
 #[cfg(test)]
 mod test {
     use bls12_381::G2Projective;
@@ -254,7 +392,7 @@ mod test {
 
         // test serialization
         let proof_bytes = proof.to_bytes();
-        let proof_ = Proof::from_bytes(&proof_bytes).unwrap();
+        let proof_ = Proof::from_bytes(proof_bytes).unwrap();
 
         println!("proof: {:#?}", proof);
 

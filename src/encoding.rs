@@ -1,9 +1,9 @@
 use std::fmt::{Debug, Display, Formatter, Result};
 
-use bls12_381::Scalar;
+use bls12_381::{G1Projective, Scalar};
 
 #[derive(Clone, PartialEq, Eq, Copy)]
-pub struct Message(pub(crate) Scalar);
+pub struct Message(pub Scalar);
 
 impl Debug for Message {
     fn fmt(&self, f: &mut Formatter) -> Result {
@@ -17,11 +17,56 @@ impl Display for Message {
     }
 }
 
+#[derive(Clone, PartialEq, Eq, Copy)]
+pub struct Ciphertext(pub G1Projective, pub G1Projective);
+
+impl Debug for Ciphertext {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "(\n\t{:?}, \n\t{:?}\n)", self.0, self.1)
+    }
+}
+
+impl Display for Ciphertext {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "(\n\t{:?}, \n\t{:?}\n)", self.0, self.1)
+    }
+}
+
+#[derive(Clone, PartialEq, Eq, Copy)]
+pub struct EGPublikKey(pub G1Projective);
+
+impl Debug for EGPublikKey {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "{:?}", self.0)
+    }
+}
+
+impl Display for EGPublikKey {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "{:?}", self.0)
+    }
+}
+
+#[derive(Clone, PartialEq, Eq, Copy)]
+pub struct EGSecretKey(pub Scalar);
+
+impl Debug for EGSecretKey {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "{:?}", self.0)
+    }
+}
+
+impl Display for EGSecretKey {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "{:?}", self.0)
+    }
+}
+
 pub trait I2OSP {
     fn i2osp(&self, len: usize) -> Vec<u8>;
 }
 
-pub(crate) trait OS2IP {
+pub trait OS2IP {
     fn os2ip(buf: &[u8]) -> Self;
 }
 

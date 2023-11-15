@@ -19,11 +19,11 @@ pub fn sample_randomness<R: Rng>(rng: &mut R) -> Message {
     Message(<Scalar as Field>::random(rng))
 }
 
-pub fn encrypt(pk: EGPublikKey, message: Message, r: Message) -> Ciphertext {
+pub fn encrypt(pk: &EGPublikKey, message: &Message, r: &Message) -> Ciphertext {
     Ciphertext(r.0 * G1Projective::generator(), r.0 * pk.0 + G1Projective::generator() * message.0)
 }
 
-pub fn decrypt(sk: &EGSecretKey, ciphertext: &Ciphertext, message_set: Vec<String>) -> String {
+pub fn decrypt(sk: &EGSecretKey, ciphertext: &Ciphertext, message_set: &[String]) -> String {
     let bbs = Bbs::<Bls12381Sha256>::default();
     let plaintext_in_group = ciphertext.1 - sk.0 * ciphertext.0;
     let result = message_set

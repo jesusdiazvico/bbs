@@ -32,6 +32,7 @@ pub mod prelude {
     pub use crate::proof::*;
     pub use crate::proof_with_encryption::*;
     pub use crate::signature::*;
+    pub use crate::encoding::{Ciphertext, Message, EGPublikKey, EGSecretKey};
     pub use crate::*;
 }
 

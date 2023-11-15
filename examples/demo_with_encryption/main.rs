@@ -62,11 +62,11 @@ fn main() {
     let r4 = sample_randomness(&mut rng);
     let r5 = sample_randomness(&mut rng);
     let ciphertext = &[
-        encrypt(pk_eg, data[1], r1),
-        encrypt(pk_eg, data[4], r2),
-        encrypt(pk_eg, data[6], r3),
-        encrypt(pk_eg, data[11], r4),
-        encrypt(pk_eg, data[12], r5),
+        encrypt(&pk_eg, &data[1], &r1),
+        encrypt(&pk_eg, &data[4], &r2),
+        encrypt(&pk_eg, &data[6], &r3),
+        encrypt(&pk_eg, &data[11], &r4),
+        encrypt(&pk_eg, &data[12], &r5),
     ];
 
     // create a proof by disclosing the messages at indices 1 and 3 and encrypting message at index 5
@@ -101,11 +101,11 @@ fn main() {
     let message_set4 = (0..1000).map(|x| format!("I know exactly {} things", x)).collect::<Vec<_>>();
     let message_set5 = (0..100).map(|x| format!("My favorite number is {}.", x)).collect::<Vec<_>>();
 
-    let decrypted_message1 = decrypt(&sk_eg, &ciphertext[0], message_set1);
-    let decrypted_message2 = decrypt(&sk_eg, &ciphertext[1], message_set2);
-    let decrypted_message3 = decrypt(&sk_eg, &ciphertext[2], message_set3);
-    let decrypted_message4 = decrypt(&sk_eg, &ciphertext[3], message_set4);
-    let decrypted_message5 = decrypt(&sk_eg, &ciphertext[4], message_set5);
+    let decrypted_message1 = decrypt(&sk_eg, &ciphertext[0], &message_set1);
+    let decrypted_message2 = decrypt(&sk_eg, &ciphertext[1], &message_set2);
+    let decrypted_message3 = decrypt(&sk_eg, &ciphertext[2], &message_set3);
+    let decrypted_message4 = decrypt(&sk_eg, &ciphertext[3], &message_set4);
+    let decrypted_message5 = decrypt(&sk_eg, &ciphertext[4], &message_set5);
 
     println!("decrypted_message: {:?}", decrypted_message1);
     println!("decrypted_message: {:?}", decrypted_message2);

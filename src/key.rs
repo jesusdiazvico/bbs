@@ -76,6 +76,7 @@ impl SecretKey {
     }
 }
 
+
 impl Serialize for SecretKey {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -91,6 +92,12 @@ impl Serialize for PublicKey {
         S: serde::Serializer,
     {
         serializer.serialize_bytes(&self.to_bytes())
+    }
+}
+
+impl From<SecretKey> for PublicKey {
+    fn from(sk: SecretKey) -> Self {
+       sk.public_key() 
     }
 }
 

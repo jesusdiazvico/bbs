@@ -7,28 +7,19 @@ fn main() {
 
     // encoded message data
     let data = [
-        // disclosed idx 0
-        bbs.message("I ❤️ BBS"),
-        // encrypted idx 1
-        bbs.message("I am 42 years old"),
-        // disclosed idx 2
-        bbs.message("I also ❤️ Rust"),
+        bbs.message("I ❤️ BBS"), // DISCLOSED idx 0
+        bbs.message("I am 42 years old"), // ENCRYPTED idx 1
+        bbs.message("I also ❤️ Rust"), // DISCLOSED idx 2
         bbs.message("I also ❤️ Linux"),
-        // encrypted idx 4
-        bbs.message("I discovered Linux when I was 10 years old"),
-        // disclosed idx 5
-        bbs.message("I also ❤️ Cryptography"),
-        // encrypted idx 6
-        bbs.message("The secret code is 392"),
+        bbs.message("I discovered Linux when I was 10 years old"), // ENCRYPTED idx 4
+        bbs.message("I also ❤️ Cryptography"), // DISCLOSED idx 5
+        bbs.message("The secret code is 392"), // ENCRYPTED idx 6
         bbs.message("And of course I ❤️ zero knowledge!"),
         bbs.message("Pie is better than cake"),
-        // disclosed idx 9
-        bbs.message("My actual name is Alexandros"),
+        bbs.message("My actual name is Alexandros"), // DISCLOSED idx 9
         bbs.message("Pineapple on pizza is a crime"),
-        // encrypted idx 11
-        bbs.message("I know exactly 382 things"),
-        // encrypted idx 12
-        bbs.message("My favorite number is 11."),
+        bbs.message("I know exactly 382 things"), // ENCRYPTED idx 11
+        bbs.message("My favorite number is 11."), // ENCRYPTED idx 12
         bbs.message("Blame copilot for these messages"),
     ];
     // encrypted indices: [1,4,6,11,12]
@@ -55,7 +46,7 @@ fn main() {
     let res = bbs.verify(&pk_bbs, &signature, &data);
     println!("verify signature result: {:?}\n", res);
 
-    // encrypt the 5-th message
+    // encrypt messages 
     let r1 = sample_randomness(&mut rng);
     let r2 = sample_randomness(&mut rng);
     let r3 = sample_randomness(&mut rng);
@@ -69,7 +60,7 @@ fn main() {
         encrypt(&pk_eg, &data[12], &r5),
     ];
 
-    // create a proof by disclosing the messages at indices 1 and 3 and encrypting message at index 5
+    // create a proof by disclosing the messages at indices [0,2,5,9] 1 and 3 and encrypting message at indices [1,4,6,11,12]
     let proof = bbs
         .create_proof_with_enc(
             &pk_bbs,

@@ -2,7 +2,7 @@ use crate::{ciphersuite::BbsCiphersuite, encoding::I2OSP, hashing::hash_to_scala
 use bls12_381::{G2Affine, G2Projective, Scalar};
 use core::fmt::{self, Debug, Display, Formatter};
 use rand::Rng;
-use serde::*;
+use serde::Serialize;
 
 #[derive(Clone, PartialEq, Eq)]
 pub struct SecretKey(pub(crate) Scalar);

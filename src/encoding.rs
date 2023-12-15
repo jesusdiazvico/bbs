@@ -21,6 +21,40 @@ impl Display for Message {
 #[derive(Clone, PartialEq, Eq, Copy)]
 pub struct Ciphertext(pub G1Projective, pub G1Projective);
 
+impl Serialize for Ciphertext {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let bytes_C1 = G1Affine::from(self.0).to_compressed();
+        let bytes_C2 = G1Affine::from(self.1).to_compressed();
+
+        let mut bytes = bytes_C1.to_vec();
+        bytes.extend_from_slice(bytes_C2.as_slice());
+
+        serializer.serialize_bytes(&bytes[..])
+    }
+}
+
+impl<'de> Deserialize<'de> for Ciphertext {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let bytes: Vec<u8> = Vec::deserialize(deserializer)?;
+
+        let mut buf = [0u8; 48];
+        buf.copy_from_slice(&bytes[0..48]);
+        let C1 = G1Projective::from(G1Affine::from_compressed(&buf).unwrap());
+
+        let mut buf = [0u8; 48];
+        buf.copy_from_slice(&bytes[48..]);
+        let C2 = G1Projective::from(G1Affine::from_compressed(&buf).unwrap());
+
+        Ok(Ciphertext(C1, C2))
+    }
+}
+
 impl Debug for Ciphertext {
     fn fmt(&self, f: &mut Formatter) -> NullResult {
         write!(f, "(\n\t{:?}, \n\t{:?}\n)", self.0, self.1)

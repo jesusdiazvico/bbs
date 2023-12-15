@@ -39,7 +39,7 @@ impl<'de> Deserialize<'de> for Signature {
         let A = G1Projective::from(G1Affine::from_compressed(&buf).unwrap());
 
         let mut buf = [0u8; 32];
-        buf.copy_from_slice(&bytes[49..]);
+        buf.copy_from_slice(&bytes[48..]);
         let e = Scalar::from_bytes(&buf).unwrap();
 
         Ok(Signature { A, e })

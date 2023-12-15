@@ -148,6 +148,42 @@ impl<'de> Deserialize<'de> for EGPublikKey {
     }
 }
 
+impl EGSecretKey {
+    pub fn to_bytes(&self) -> [u8; 32] {
+        self.0.to_bytes()
+    }
+
+    pub fn from_bytes<T: AsRef<[u8]>>(bytes: T) -> Self {
+
+        let bytes = bytes.as_ref();
+        if bytes.len() != 32 {
+            panic!("Invalid length");
+        }
+        let mut buf = [0u8; 32];
+        buf.copy_from_slice(bytes);
+        Self(Scalar::from_bytes(&buf).unwrap())
+    }
+}
+
+impl Serialize for EGSecretKey {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_bytes(&self.0.to_bytes())
+    }
+}
+
+impl<'de> Deserialize<'de> for EGSecretKey {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let bytes: Vec<u8> = Vec::deserialize(deserializer)?;
+        Ok(EGSecretKey::from_bytes(&bytes[..]))
+    }
+}
+
 #[cfg(test)]
 mod test {
     use crate::encoding::I2OSP;

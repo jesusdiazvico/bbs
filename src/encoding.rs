@@ -18,6 +18,31 @@ impl Display for Message {
     }
 }
 
+impl Serialize for Message {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let bytes_e = self.0.to_bytes(); 
+        serializer.serialize_bytes(&bytes_e[..])
+    }
+}
+
+impl<'de> Deserialize<'de> for Message {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let bytes: Vec<u8> = Vec::deserialize(deserializer)?;
+
+        let mut buf = [0u8; 32];
+        buf.copy_from_slice(&bytes[0..]);
+        let m = Scalar::from_bytes(&buf).unwrap();
+
+        Ok(Message(m))
+    }
+}
+
 #[derive(Clone, PartialEq, Eq, Copy)]
 pub struct Ciphertext(pub G1Projective, pub G1Projective);
 

@@ -2,6 +2,7 @@ use bls12_381::{
     hash_to_curve::{ExpandMessage, ExpandMsgXmd, ExpandMsgXof},
     G1Affine, G1Projective,
 };
+use serde::{Serialize, Deserialize};
 use sha2::Sha256;
 use sha3::Shake256;
 
@@ -51,10 +52,10 @@ pub trait BbsCiphersuite<'a> {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Serialize, Deserialize)]
 pub struct Bls12381Shake256;
 
-#[derive(Default)]
+#[derive(Default, Serialize, Deserialize)]
 pub struct Bls12381Sha256;
 
 impl<'a> BbsCiphersuite<'a> for Bls12381Shake256 {

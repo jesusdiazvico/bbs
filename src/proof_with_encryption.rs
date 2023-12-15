@@ -4,6 +4,7 @@ use std::mem;
 
 use bls12_381::{multi_miller_loop, G1Affine, G1Projective, G2Affine, G2Prepared, G2Projective, Gt, Scalar};
 use rand::{thread_rng, Rng};
+use serde::{Serialize, Deserialize, Deserializer};
 
 use crate::{
     ciphersuite::*,
@@ -29,6 +30,25 @@ pub struct ProofWithEncrypted {
     u: Vec<Scalar>,
     v: Vec<Scalar>,
     rho: Scalar,
+}
+
+impl Serialize for ProofWithEncrypted {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_bytes(&self.to_bytes())
+    }
+}
+
+impl<'de> Deserialize<'de> for ProofWithEncrypted {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let bytes: Vec<u8> = Vec::deserialize(deserializer)?;
+        Ok(ProofWithEncrypted::from_bytes(&bytes[..]).unwrap())
+    }
 }
 
 // TODO: Docs

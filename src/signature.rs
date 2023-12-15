@@ -1,6 +1,7 @@
 use std::fmt::{self, Debug, Display, Formatter};
 
 use bls12_381::{multi_miller_loop, G1Affine, G1Projective, G2Affine, G2Prepared, G2Projective, Gt, Scalar};
+use serde::Deserializer;
 
 use crate::{ciphersuite::*, encoding::*, generators::*, hashing::*, utils::calculate_domain, *};
 
@@ -10,6 +11,41 @@ pub struct Signature {
     pub(crate) A: G1Projective,
     pub(crate) e: Scalar,
 }
+
+impl Serialize for Signature {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let bytes_A = G1Affine::from(self.A).to_compressed();
+        let bytes_e = self.e.to_bytes(); 
+
+        let mut bytes = bytes_A.to_vec();
+        bytes.extend_from_slice(bytes_e.as_slice());
+
+        serializer.serialize_bytes(&bytes[..])
+    }
+}
+
+impl<'de> Deserialize<'de> for Signature {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let bytes: Vec<u8> = Vec::deserialize(deserializer)?;
+
+        let mut buf = [0u8; 48];
+        buf.copy_from_slice(&bytes[0..48]);
+        let A = G1Projective::from(G1Affine::from_compressed(&buf).unwrap());
+
+        let mut buf = [0u8; 32];
+        buf.copy_from_slice(&bytes[49..]);
+        let e = Scalar::from_bytes(&buf).unwrap();
+
+        Ok(Signature { A, e })
+    }
+}
+
 
 // https://identity.foundation/bbs-signature/draft-irtf-cfrg-bbs-signatures.html#name-sign
 pub(crate) fn sign_impl<'a, T>(sk: &Scalar, header: &[u8], messages: &[Scalar]) -> Signature

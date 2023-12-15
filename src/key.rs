@@ -2,7 +2,7 @@ use crate::{ciphersuite::BbsCiphersuite, encoding::I2OSP, hashing::hash_to_scala
 use bls12_381::{G2Affine, G2Projective, Scalar};
 use core::fmt::{self, Debug, Display, Formatter};
 use rand::Rng;
-use serde::Serialize;
+use serde::*;
 
 #[derive(Clone, PartialEq, Eq)]
 pub struct SecretKey(pub(crate) Scalar);
@@ -73,6 +73,17 @@ impl SecretKey {
 
     pub fn to_bytes(&self) -> [u8; 32] {
         self.0.to_bytes()
+    }
+
+    pub fn from_bytes<T: AsRef<[u8]>>(bytes: T) -> Self {
+
+        let bytes = bytes.as_ref();
+        if bytes.len() != 32 {
+            panic!("Invalid length");
+        }
+        let mut buf = [0u8; 32];
+        buf.copy_from_slice(bytes);
+        Self(Scalar::from_bytes(&buf).unwrap())
     }
 }
 

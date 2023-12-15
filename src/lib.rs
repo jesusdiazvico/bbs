@@ -10,6 +10,7 @@ use prelude::{
     proof_with_encryption::ProofWithEncrypted,
     *,
 };
+use serde::{Deserialize, Serialize};
 
 mod ciphersuite;
 mod elgamal;
@@ -36,7 +37,7 @@ pub mod prelude {
     pub use crate::*;
 }
 
-#[derive(Default)]
+#[derive(Default, Debug, Serialize, Deserialize)]
 pub struct Bbs<'a, T>
 where
     T: BbsCiphersuite<'a> + Default,

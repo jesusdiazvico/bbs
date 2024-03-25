@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 
 mod ciphersuite;
 mod elgamal;
-mod encoding;
+pub mod encoding;
 mod generators;
 mod hashing;
 mod key;

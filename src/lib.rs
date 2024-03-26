@@ -12,7 +12,7 @@ use prelude::{
 };
 use serde::{Deserialize, Serialize};
 
-mod ciphersuite;
+pub mod ciphersuite;
 mod elgamal;
 pub mod encoding;
 mod generators;
